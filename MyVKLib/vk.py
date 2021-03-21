@@ -73,6 +73,13 @@ class LongPoll:
             timeout=90).json()
         if 'failed' in r.keys():
             self.update_keys()
+            r = self.vk.rest.get(
+                "https://{server}?act=a_check&key={key}&ts={ts}&wait={wait}&mode=2&version=3".format(
+                    server=self.params['server'],
+                    key=self.params['key'],
+                    wait=self.params['wait'],
+                    ts=self.params['ts']),
+                timeout=90).json()
         else:
             self.params['ts'] = r['ts']
         # print("Обновлено")
