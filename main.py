@@ -29,14 +29,14 @@ def parse_messages():
     updates = vk.longpoll.get_update()
     for update in updates["updates"]:
         if update[0] == 4:  # СООБЩЕНИЕ
-            print(update)
+            # print(update)
             message = Message(update)
             if message.get_id() in SKIP_LIST:
                 SKIP_LIST.remove(message.get_id())
                 continue
             if Command.is_command(message):
                 SKIP_LIST.extend(Command.execute(message, vk))
-            # print(message.toString())
+            print(message.toString())
 
 
 BASE_NAME = "base.db"
@@ -48,5 +48,6 @@ if __name__ == '__main__':
     if not check_base():
         init_new_session()
     vk = VK(get_token())
+    print("STARTED")
     while True:
         parse_messages()

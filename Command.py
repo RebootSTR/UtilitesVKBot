@@ -28,5 +28,5 @@ def _send_status(mes: Message, vk: VK):
     delete = vk.rest.post("messages.delete",
                           message_ids=mes.get_id(),
                           delete_for_all=True)
-    print(delete.json())
+    #print(delete.json())
     return [send.json()["response"]]

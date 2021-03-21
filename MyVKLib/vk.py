@@ -63,7 +63,7 @@ class LongPoll:
     def get_update(self):
         if self.params is None:
             self.update_keys()
-        print("Поиск обновлений... ", end="")
+        # print("Поиск обновлений... ", end="")
         r = self.vk.rest.get(
             "https://{server}?act=a_check&key={key}&ts={ts}&wait={wait}&mode=2&version=3".format(
                 server=self.params['server'],
@@ -75,5 +75,5 @@ class LongPoll:
             self.update_keys()
         else:
             self.params['ts'] = r['ts']
-        print("Обновлено")
+        # print("Обновлено")
         return r
