@@ -1,4 +1,6 @@
 # @rebootstr
+
+import Command
 from Message import Message
 from DataBase import DataBase
 from MyVKLib.vk import *
@@ -29,10 +31,16 @@ def parse_messages():
         if update[0] == 4:  # СООБЩЕНИЕ
             print(update)
             message = Message(update)
+            if message.get_id() in SKIP_LIST:
+                SKIP_LIST.remove(message.get_id())
+                continue
+            if Command.is_command(message):
+                SKIP_LIST.extend(Command.execute(message, vk))
             # print(message.toString())
 
 
 BASE_NAME = "base.db"
+SKIP_LIST = []
 
 if __name__ == '__main__':
     base = DataBase(BASE_NAME)
