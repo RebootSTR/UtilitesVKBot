@@ -57,6 +57,7 @@ class Rest:
                 waiting = time.time()
                 print(time.ctime() + '\n ошибка \n' + traceback.format_exc())
                 print("начинаю ожидание соединения")
+                input("жду вмешательства")
                 self.wait_connection()
                 self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд, "
                                           "после исключения в методе post\n{}".format(time.time() - waiting,
