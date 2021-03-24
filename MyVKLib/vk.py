@@ -1,4 +1,5 @@
 # @rebootstr
+import time
 import traceback
 import random
 
@@ -24,6 +25,14 @@ class Rest:
     def __init__(self, vk):
         self.vk = vk
 
+    def wait_connection(self):
+        while True:
+            try:
+                r = requests.get("https://api.vk.com")
+                return
+            except:
+                time.sleep(60)
+
     def post(self, method, **kwargs):
         while True:
             if 'v' not in kwargs.keys():
@@ -45,9 +54,13 @@ class Rest:
                     input("жду приказа")
                 break
             except Exception as ex:
-                print('ошибка \n' + traceback.format_exc())
-                self.vk.send_error_in_mes('ошибка \n' + traceback.format_exc())
-                input()
+                waiting = time.time()
+                print(time.ctime() + '\n ошибка \n' + traceback.format_exc())
+                print("начинаю ожидание соединения")
+                self.wait_connection()
+                self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд, "
+                                          "после исключения в методе post\n{}".format(time.time() - waiting,
+                                                                                      traceback.format_exc()))
         return r
 
     def get(self, url, timeout):
@@ -56,9 +69,13 @@ class Rest:
                 r = requests.get(url, timeout=timeout)
                 break
             except Exception as ex:
-                print('ошибка get запроса ' + traceback.format_exc())
-                self.vk.send_error_in_mes('ошибка get запроса ' + traceback.format_exc())
-                input()
+                waiting = time.time()
+                print(time.ctime() + '\n ошибка get запроса \n' + traceback.format_exc())
+                print("начинаю ожидание соединения")
+                self.wait_connection()
+                self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд,"
+                                          " после исключения в методе get\n{}".format(time.time() - waiting,
+                                                                                      traceback.format_exc()))
         return r
 
 
