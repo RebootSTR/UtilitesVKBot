@@ -86,7 +86,7 @@ class LongPoll:
     def update_keys(self):
         print("Обновляю ключи")
         data = self.vk.rest.post("messages.getLongPollServer").json()['response']
-        data['wait'] = 85
+        data['wait'] = 70
         self.params = data
 
     def get_update(self):
