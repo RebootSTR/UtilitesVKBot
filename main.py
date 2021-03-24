@@ -1,4 +1,5 @@
 # @rebootstr
+import time
 
 import Command
 from Message import Message
@@ -49,5 +50,9 @@ if __name__ == '__main__':
         init_new_session()
     vk = VK(get_token())
     print("STARTED")
+    send = vk.rest.post("messages.send",
+                        peer_id=vk.user_id,
+                        message=f"<Online.{time.strftime('%H:%M:%S')}>",
+                        random_id=random.randint(-2147483648, 2147483647))
     while True:
         parse_messages()

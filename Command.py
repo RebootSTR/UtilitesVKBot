@@ -15,8 +15,8 @@ def is_command(mes: Message):
 def execute(mes: Message, vk: VK):
     index = commands.index(mes.get_text().split(" ")[0])
     if index == 0:  # status
-        if mes.is_out_or_me(vk.user_id):
-            return _send_status(mes, vk)
+        # if mes.is_out_or_me(vk.user_id):
+        return _send_status(mes, vk)
 
 
 def _send_status(mes: Message, vk: VK):

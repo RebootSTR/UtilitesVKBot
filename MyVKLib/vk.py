@@ -1,5 +1,6 @@
 # @rebootstr
 import traceback
+import random
 
 import requests
 
@@ -11,31 +12,42 @@ class VK:
         self.longpoll = LongPoll(self)
         self.user_id = self.rest.post("account.getProfileInfo").json()["response"]["id"]
 
+    def send_error_in_mes(self, error):
+        print("ПОЛУЧИЛ ОШИБКУ, ПРОБУЮ ОТПРАВИТЬ В ЛС")
+        send = self.rest.post("messages.send",
+                              peer_id=self.user_id,
+                              message=error,
+                              random_id=random.randint(-2147483648, 2147483647))
+
 
 class Rest:
     def __init__(self, vk):
         self.vk = vk
 
     def post(self, method, **kwargs):
-        if 'v' not in kwargs.keys():
-            kwargs["v"] = "5.126"
-        if 'access_token' not in kwargs.keys():
-            kwargs["access_token"] = self.vk.token
-        kwargs["lang"] = "ru"
-        kwargs["https"] = 1
+        while True:
+            if 'v' not in kwargs.keys():
+                kwargs["v"] = "5.126"
+            if 'access_token' not in kwargs.keys():
+                kwargs["access_token"] = self.vk.token
+            kwargs["lang"] = "ru"
+            kwargs["https"] = 1
 
-        url = "https://api.vk.com/method/" + method + '?'
-        for key, value in kwargs.items():
-            url += f"{key}={value}&"
-        url = url[:-1]
-        try:
-            r = requests.post(url)
-            if "failed" in r.json().keys():
-                print("Найден FAILED - обработай " + r.json())
+            url = "https://api.vk.com/method/" + method + '?'
+            for key, value in kwargs.items():
+                url += f"{key}={value}&"
+            url = url[:-1]
+            try:
+                r = requests.post(url)
+                if "failed" in r.json().keys():
+                    print("Найден FAILED - обработай \n" + r.json())
+                    self.vk.send_error_in_mes("Найден FAILED - обработай \n" + r.json())
+                    input("жду приказа")
+                break
+            except Exception as ex:
+                print('ошибка \n' + traceback.format_exc())
+                self.vk.send_error_in_mes('ошибка \n' + traceback.format_exc())
                 input()
-        except Exception as ex:
-            print('ошибка ' + traceback.format_exc(ex))
-            input()
         return r
 
     def get(self, url, timeout):
@@ -44,7 +56,9 @@ class Rest:
                 r = requests.get(url, timeout=timeout)
                 break
             except Exception as ex:
-                print('ошибка get запроса ' + traceback.format_exc(ex))
+                print('ошибка get запроса ' + traceback.format_exc())
+                self.vk.send_error_in_mes('ошибка get запроса ' + traceback.format_exc())
+                input()
         return r
 
 
