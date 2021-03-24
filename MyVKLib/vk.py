@@ -55,13 +55,11 @@ class Rest:
                 break
             except Exception as ex:
                 waiting = time.time()
-                print(time.ctime() + '\n ошибка \n' + traceback.format_exc())
+                print(time.ctime() + '\n ошибка post запроса')
                 print("начинаю ожидание соединения")
-                input("жду вмешательства")
                 self.wait_connection()
                 self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд, "
-                                          "после исключения в методе post\n{}".format(time.time() - waiting,
-                                                                                      traceback.format_exc()))
+                                          "после исключения в методе post".format(time.time() - waiting))
         return r
 
     def get(self, url, timeout):
@@ -71,13 +69,11 @@ class Rest:
                 break
             except Exception as ex:
                 waiting = time.time()
-                print(time.ctime() + '\n ошибка get запроса \n' + traceback.format_exc())
+                print(time.ctime() + '\n ошибка get запроса')
                 print("начинаю ожидание соединения")
-                input("жду вмешательства")
                 self.wait_connection()
                 self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд,"
-                                          " после исключения в методе get\n{}".format(time.time() - waiting,
-                                                                                      traceback.format_exc()))
+                                          " после исключения в методе get".format(time.time() - waiting))
         return r
 
 
