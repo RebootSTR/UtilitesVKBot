@@ -26,8 +26,11 @@ class Message:
     def is_out(self):
         return self.get_flags() & 2 != 0
 
-    def is_out_or_me(self, my_id):
-        return self.is_out() or my_id == self.get_peer()
+    def is_out_or_myself(self, my_id):
+        return self.is_out() or self.is_myself(my_id)
+
+    def is_myself(self, my_id):
+        return my_id == self.get_peer()
 
     def is_chat(self):
         return self.get_peer() > 2000000000

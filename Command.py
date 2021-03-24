@@ -28,15 +28,15 @@ def execute(mes: Message, vk: VK):
         # if mes.is_out_or_me(vk.user_id):
         _send_status(mes, vk)
     elif index == 1:  # pause
-        if mes.is_out_or_me(vk.user_id):
+        if mes.is_out_or_myself(vk.user_id):
             PAUSE = True
             _send_pause(mes, vk)
     elif index == 2:  # resume
-        if mes.is_out_or_me(vk.user_id):
+        if mes.is_out_or_myself(vk.user_id):
             PAUSE = False
             _send_resume(mes, vk)
     elif index == 3:  # delete
-        if mes.is_out_or_me(vk.user_id):
+        if mes.is_out_or_myself(vk.user_id):
             _delete_function(mes, vk)
 
 
@@ -93,7 +93,7 @@ def _delete_function(mes: Message, vk: VK):
 
     # Удаление
     print("deleting")
-    if mes.is_out_or_me(vk.user_id):
+    if mes.is_myself(vk.user_id):
         delete_mode = 0
     else:
         delete_mode = 1
