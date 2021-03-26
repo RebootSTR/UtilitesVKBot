@@ -48,12 +48,14 @@ def execute(mes: Message, vk: VK):
             _slave_start(vk)
     elif index == 5:  # update slave
         if mes.is_myself(vk.user_id):
+            print("command update received")
             _slave_update()
 
 
 def _slave_start(vk: VK):
     global SLAVE
-    if SLAVE is None:
+    if SLAVE is None or SLAVE.t.is_alive():
+        print("start new slave")
         SLAVE = SlaveStarter(vk)
         SLAVE.start()
 

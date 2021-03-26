@@ -5,6 +5,7 @@ import traceback
 import main as bot
 from MyVKLib.vk import VK
 import requests
+import argparse
 
 
 def safe_post(url, data=None, json=None, **kwargs):
@@ -131,21 +132,25 @@ class Slave:
             slave_ids = []
             for i in range(len(json["slaves"])):
                 slave_ids.append(json["slaves"][i]["id"])
-                print(f'{i}: '
-                      f'id: {json["slaves"][i]["id"]} '
-                      f'profit: {json["slaves"][i]["profit_per_min"]} '
-                      f'price: {json["slaves"][i]["price"]}')
-            index = int(input(">> "))
-            while json["slaves"][index]["profit_per_min"] != 1000:
-                print("sale")
-                self.sale_slave(slave_ids[index])
-                print("buy")
-                if self.buy_slave(slave_ids[index])["price"] > 35000:
-                    break
-            print("job")
-            self.job_slave(slave_ids[index])
-            print("protect")
-            self.protect_slave(slave_ids[index])
+                if json["slaves"][i]["profit_per_min"]!=1000:
+                    print(f'{i}: '
+                          f'id: {json["slaves"][i]["id"]} '
+                          f'profit: {json["slaves"][i]["profit_per_min"]} '
+                          f'price: {json["slaves"][i]["price"]}')
+            for index in input(">> ").split(" "):
+                index = int(index)
+                while json["slaves"][index]["profit_per_min"] != 1000:
+                    print("sale ", end="")
+                    print(self.sale_slave(slave_ids[index])[1])
+                    print("buy ", end="")
+                    buy = self.buy_slave(slave_ids[index])
+                    print(buy[1])
+                    if buy[0]["price"] > 35000:
+                        break
+                print("job")
+                self.job_slave(slave_ids[index])
+                print("protect")
+                self.protect_slave(slave_ids[index])
 
     def sale_slave(self, id):
         sale_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/saleSlave"
@@ -154,7 +159,7 @@ class Slave:
             self.options.append(sale_url)
 
         sale_slave = safe_post(sale_url, headers=self.headers, json={"slave_id": id})
-        return self.get_slave(id)
+        return [self.get_slave(id), sale_slave.json()]
 
     def buy_slave(self, id):
         buy_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/buySlave"
@@ -163,7 +168,7 @@ class Slave:
             self.options.append(buy_url)
 
         buy_slave = safe_post(buy_url, headers=self.headers, json={"slave_id": id})
-        return self.get_slave(id)
+        return [self.get_slave(id), buy_slave.json()]
 
     def buy_fetter(self, id):
         buy_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/buyFetter"
@@ -187,7 +192,14 @@ class Slave:
 BASE_NAME = "base.db"
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-id", type=int)
+    args = parser.parse_args()
+    
+    
     base = bot.open_base(BASE_NAME)
     vk = VK(bot.get_token(base))
     slave = Slave(vk)
+    if args.id is not None:
+        print(slave.buy_slave(args.id)[1])
     slave.upgrade_mode()

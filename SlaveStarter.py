@@ -11,11 +11,12 @@ class SlaveStarter:
     def __init__(self, vk):
         self.vk = vk
         self.slave = None
+        self.t = Thread
 
     def start(self):
         self.slave = Slave(self.vk)
-        t = Thread(target=self.slave.main, daemon=True)
-        t.start()
+        self.t = Thread(target=self.slave.main, daemon=True)
+        self.t.start()
 
     def update(self):
         self.slave.need_update = True
