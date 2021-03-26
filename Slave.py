@@ -98,6 +98,10 @@ class Slave:
         get_slave = safe_get(get_slave_url, headers=self.headers)
         get_slave_list = safe_get(get_slave_list_url, headers=self.headers)
 
+        try:
+            return get_slave.json()
+        except:
+            print(get_slave, get_slave.content)
         return get_slave.json()
 
     def protect_slave(self, id):
