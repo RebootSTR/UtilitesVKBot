@@ -19,7 +19,9 @@ def safe_post(url, data=None, json=None, **kwargs):
 def safe_get(url, params=None, **kwargs):
     while True:
         try:
-            return requests.get(url, params, **kwargs)
+            r = requests.get(url, params, **kwargs)
+            r.json()
+            return r
         except:
             print("err")
 
@@ -98,10 +100,7 @@ class Slave:
         get_slave = safe_get(get_slave_url, headers=self.headers)
         get_slave_list = safe_get(get_slave_list_url, headers=self.headers)
 
-        try:
-            return get_slave.json()
-        except:
-            print(get_slave, get_slave.content)
+        return get_slave.json()
 
     def protect_slave(self, id):
         while self.get_slave(id)["fetter_to"] != 0:
