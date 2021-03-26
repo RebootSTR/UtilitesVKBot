@@ -2,8 +2,33 @@
 
 import time
 import traceback
-
+import main as bot
+from MyVKLib.vk import VK
 import requests
+
+
+def safe_post(url, data=None, json=None, **kwargs):
+    while True:
+        try:
+            return requests.post(url, data, json, **kwargs)
+        except:
+            print("err")
+
+
+def safe_get(url, params=None, **kwargs):
+    while True:
+        try:
+            return requests.get(url, params, **kwargs)
+        except:
+            print("err")
+
+
+def safe_options(url, **kwargs):
+    while True:
+        try:
+            return requests.options(url, **kwargs)
+        except:
+            print("err")
 
 
 class Slave:
@@ -15,9 +40,11 @@ class Slave:
         self.need_update = False
         self.open_app()
 
+        self.options = []
+
     def open_app(self):
         APP_ID = 7794757
-        APP_URL = "https://vk.com/app"+str(APP_ID)+"%23"
+        APP_URL = "https://vk.com/app" + str(APP_ID) + "%23"
         DEVICE = "9b9b7af4bfe58898"
         print("superApp_Get")
         superApp_Get = self.vk.rest.post("superApp.get", device_id=DEVICE,
@@ -34,18 +61,22 @@ class Slave:
                                       "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/81.0.4044.138 Mobile "
                                       "Safari/537.36"}
         self.options_headers = {"referer": url,
-                               "user-agent": "Mozilla/5.0 (Linux; Android 10; POCO F1 Build/QKQ1.190828.002; wv) "
-                                             "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/81.0.4044.138 Mobile "
-                                             "Safari/537.36"}
+                                "user-agent": "Mozilla/5.0 (Linux; Android 10; POCO F1 Build/QKQ1.190828.002; wv) "
+                                              "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/81.0.4044.138 Mobile "
+                                              "Safari/537.36"}
 
     def update(self):
         print("pixel_get")
-        options_pixel_get = requests.options("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/start", headers=self.options_headers)
-        pixel_get = requests.get("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/start", headers=self.headers)
+        pixel_get_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/start"
+        if pixel_get_url not in self.options:
+            options_pixel_get = safe_options(pixel_get_url, headers=self.options_headers)
+
+        pixel_get = safe_get(pixel_get_url, headers=self.headers)
         self.table = []
         for slave in pixel_get.json()["slaves"]:
             if slave["price"] < 90000 and slave["profit_per_min"] == 1000:
                 self.table.append({"id": slave["id"], "time": slave["fetter_to"]})
+        return pixel_get.json()
 
     # minimal time
     def get_minimal(self):
@@ -56,14 +87,16 @@ class Slave:
         return minimal
 
     def get_slave(self, id):
-        options_get_slave = requests.options("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                             "user?id="+str(id), headers=self.options_headers)
-        options_get_slave_list = requests.options("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                                  "slaveList?id="+str(id), headers=self.options_headers)
-        get_slave = requests.get("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                 "user?id="+str(id), headers=self.headers)
-        get_slave_list = requests.get("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                      "slaveList?id="+str(id), headers=self.headers)
+        get_slave_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/user?id=" + str(id)
+        if get_slave_url not in self.options:
+            options_get_slave = safe_options(get_slave_url, headers=self.options_headers)
+        get_slave_list_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/slaveList?id=" + str(id)
+        if get_slave_list_url not in self.options:
+            options_get_slave_list = safe_options(get_slave_list_url, headers=self.options_headers)
+
+        get_slave = safe_get(get_slave_url, headers=self.headers)
+        get_slave_list = safe_get(get_slave_list_url, headers=self.headers)
+
         return get_slave.json()
 
     def protect_slave(self, id):
@@ -80,7 +113,7 @@ class Slave:
                 print(self.table[minimal])
                 time_left = self.table[minimal]["time"] - time.time()
                 if time_left > 0:
-                    print(f"sleep {time_left+1} seconds")
+                    print(f"sleep {time_left + 1} seconds")
                     time.sleep(time_left + 1)
                 print("buy fetter")
                 self.buy_fetter(self.table[minimal]["id"])
@@ -92,13 +125,69 @@ class Slave:
             self.vk.send_error_in_mes("раб упал(((")
             traceback.print_exc()
 
-    def buy_fetter(self, id):
-        options_buy_fetter = requests.options("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                              "buyFetter", headers=self.options_headers)
-        buy_fetter = requests.post("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                   "buyFetter", headers=self.headers, json={"slave_id": id})
-        get_slave = requests.get("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                 "user?id="+str(id), headers=self.headers)
-        get_slave_list = requests.get("https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/"
-                                      "slaveList?id="+str(id), headers=self.headers)
+    def upgrade_mode(self):
+        while True:
+            json = self.update()
+            slave_ids = []
+            for i in range(len(json["slaves"])):
+                slave_ids.append(json["slaves"][i]["id"])
+                print(f'{i}: '
+                      f'id: {json["slaves"][i]["id"]} '
+                      f'profit: {json["slaves"][i]["profit_per_min"]} '
+                      f'price: {json["slaves"][i]["price"]}')
+            index = int(input(">> "))
+            while json["slaves"][index]["profit_per_min"] != 1000:
+                print("sale")
+                self.sale_slave(slave_ids[index])
+                print("buy")
+                if self.buy_slave(slave_ids[index])["price"] > 35000:
+                    break
+            print("job")
+            self.job_slave(slave_ids[index])
+            print("protect")
+            self.protect_slave(slave_ids[index])
 
+    def sale_slave(self, id):
+        sale_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/saleSlave"
+        if sale_url not in self.options:
+            options_sale_slave = safe_options(sale_url, headers=self.options_headers)
+            self.options.append(sale_url)
+
+        sale_slave = safe_post(sale_url, headers=self.headers, json={"slave_id": id})
+        return self.get_slave(id)
+
+    def buy_slave(self, id):
+        buy_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/buySlave"
+        if buy_url not in self.options:
+            options_buy_slave = safe_options(buy_url, headers=self.options_headers)
+            self.options.append(buy_url)
+
+        buy_slave = safe_post(buy_url, headers=self.headers, json={"slave_id": id})
+        return self.get_slave(id)
+
+    def buy_fetter(self, id):
+        buy_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/buyFetter"
+        if buy_url not in self.options:
+            options_buy_fetter = safe_options(buy_url, headers=self.options_headers)
+            self.options.append(buy_url)
+
+        buy_fetter = safe_post(buy_url, headers=self.headers, json={"slave_id": id})
+        self.get_slave(id)
+
+    def job_slave(self, id):
+        job_slave_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/jobSlave"
+        if job_slave_url not in self.options:
+            options_job_slave = safe_options(job_slave_url, headers=self.options_headers)
+            self.options.append(job_slave_url)
+
+        job_slave = safe_post(job_slave_url, headers=self.headers, json={"slave_id": id, "name": "0"})
+        self.get_slave(id)
+
+
+BASE_NAME = "base.db"
+
+if __name__ == '__main__':
+    base = bot.open_base(BASE_NAME)
+    vk = VK(bot.get_token(base))
+    slave = Slave(vk)
+    slave.upgrade_mode()
