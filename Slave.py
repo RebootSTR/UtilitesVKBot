@@ -102,7 +102,6 @@ class Slave:
             return get_slave.json()
         except:
             print(get_slave, get_slave.content)
-        return get_slave.json()
 
     def protect_slave(self, id):
         while self.get_slave(id)["fetter_to"] != 0:
