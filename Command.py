@@ -5,12 +5,17 @@ from Message import Message
 from MyVKLib.vk import VK
 import time
 
+from SlaveStarter import SlaveStarter
+
 commands = ["/status",
             "/pause",
             "/resume",
-            "/d"]
+            "/d",
+            "/slave_start",
+            "/slave_update"]
 
 PAUSE = False
+SLAVE = None
 
 
 def is_command(mes: Message):
@@ -25,8 +30,8 @@ def execute(mes: Message, vk: VK):
     if PAUSE and index != 2:
         return
     elif index == 0:  # status
-        # if mes.is_out_or_me(vk.user_id):
-        _send_status(mes, vk)
+        if mes.is_out_or_myself(vk.user_id):
+            _send_status(mes, vk)
     elif index == 1:  # pause
         if mes.is_out_or_myself(vk.user_id):
             PAUSE = True
@@ -38,6 +43,25 @@ def execute(mes: Message, vk: VK):
     elif index == 3:  # delete
         if mes.is_out_or_myself(vk.user_id):
             _delete_function(mes, vk)
+    elif index == 4:  # start slave
+        if mes.is_myself(vk.user_id):
+            _slave_start(vk)
+    elif index == 5:  # update slave
+        if mes.is_myself(vk.user_id):
+            _slave_update()
+
+
+def _slave_start(vk: VK):
+    global SLAVE
+    if SLAVE is None:
+        SLAVE = SlaveStarter(vk)
+        SLAVE.start()
+
+
+def _slave_update():
+    global SLAVE
+    if SLAVE is not None:
+        SLAVE.update()
 
 
 def _send_status(mes: Message, vk: VK):
@@ -102,13 +126,13 @@ def _delete_function(mes: Message, vk: VK):
     while count > 0:
         if count >= 1000:
             r = vk.rest.post("messages.delete",
-                             message_ids=str(ids[times*1000:times*1000+1000])[1:-1],
+                             message_ids=str(ids[times * 1000:times * 1000 + 1000])[1:-1],
                              delete_for_all=delete_mode)
             times += 1
             count -= 1000
         else:
             r = vk.rest.post("messages.delete",
-                             message_ids=str(ids[times*1000:times*1000+count])[1:-1],
+                             message_ids=str(ids[times * 1000:times * 1000 + count])[1:-1],
                              delete_for_all=delete_mode)
             count = 0
         print(r.text)

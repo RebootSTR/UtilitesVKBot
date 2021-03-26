@@ -50,7 +50,7 @@ class Rest:
                 r = requests.post(url)
                 if "failed" in r.json().keys():
                     print("Найден FAILED - обработай \n" + r.json())
-                    self.vk.send_error_in_mes("Найден FAILED - обработай \n" + r.json())
+                    # self.vk.send_error_in_mes("Найден FAILED - обработай \n" + r.json())
                     input("жду приказа")
                 break
             except Exception as ex:
@@ -58,8 +58,8 @@ class Rest:
                 print(time.ctime() + '\n ошибка post запроса')
                 print("начинаю ожидание соединения")
                 self.wait_connection()
-                self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд, "
-                                          "после исключения в методе post".format(time.time() - waiting))
+                # self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд, "
+                #                           "после исключения в методе post".format(time.time() - waiting))
         return r
 
     def get(self, url, timeout):
@@ -72,8 +72,8 @@ class Rest:
                 print(time.ctime() + '\n ошибка get запроса')
                 print("начинаю ожидание соединения")
                 self.wait_connection()
-                self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд,"
-                                          " после исключения в методе get".format(time.time() - waiting))
+                # self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд,"
+                #                           " после исключения в методе get".format(time.time() - waiting))
         return r
 
 
