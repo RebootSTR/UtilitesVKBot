@@ -11,7 +11,12 @@ import argparse
 def safe_post(url, data=None, json=None, **kwargs):
     while True:
         try:
-            return requests.post(url, data, json, **kwargs)
+            
+            r = requests.post(url, data, json, **kwargs)
+            if "error" in r.json().keys():
+                time.sleep(10)
+                continue
+            return r
         except:
             print("err")
 
@@ -93,14 +98,18 @@ class Slave:
         get_slave_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/user?id=" + str(id)
         if get_slave_url not in self.options:
             options_get_slave = safe_options(get_slave_url, headers=self.options_headers)
+
+        get_slave = safe_get(get_slave_url, headers=self.headers)
+        self.get_slave_list(id)
+
+        return get_slave.json()
+
+    def get_slave_list(self, id):
         get_slave_list_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/slaveList?id=" + str(id)
         if get_slave_list_url not in self.options:
             options_get_slave_list = safe_options(get_slave_list_url, headers=self.options_headers)
-
-        get_slave = safe_get(get_slave_url, headers=self.headers)
         get_slave_list = safe_get(get_slave_list_url, headers=self.headers)
-
-        return get_slave.json()
+        return get_slave_list.json()
 
     def protect_slave(self, id):
         while self.get_slave(id)["fetter_to"] != 0:
@@ -134,11 +143,15 @@ class Slave:
             slave_ids = []
             for i in range(len(json["slaves"])):
                 slave_ids.append(json["slaves"][i]["id"])
+                count = 0
                 if json["slaves"][i]["profit_per_min"]!=1000:
                     print(f'{i}: '
                           f'id: {json["slaves"][i]["id"]} '
                           f'profit: {json["slaves"][i]["profit_per_min"]} '
                           f'price: {json["slaves"][i]["price"]}')
+                    count+=1
+            if count == 0:
+                break
             for index in input(">> ").split(" "):
                 index = int(index)
                 while json["slaves"][index]["profit_per_min"] != 1000:
@@ -181,14 +194,41 @@ class Slave:
         buy_fetter = safe_post(buy_url, headers=self.headers, json={"slave_id": id})
         self.get_slave(id)
 
-    def job_slave(self, id):
+    def job_slave(self, id, name="0"):
         job_slave_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/jobSlave"
         if job_slave_url not in self.options:
             options_job_slave = safe_options(job_slave_url, headers=self.options_headers)
             self.options.append(job_slave_url)
 
-        job_slave = safe_post(job_slave_url, headers=self.headers, json={"slave_id": id, "name": "0"})
+        job_slave = safe_post(job_slave_url, headers=self.headers, json={"slave_id": id, "name": name})
         self.get_slave(id)
+
+    def job_all_mode(self, name):
+        json = self.update()
+        for slave in json["slaves"]:
+            if slave["profit_per_min"] == 0 and slave["price"] > 10000:
+                print("job "+str(slave["id"]))
+                self.job_slave(slave["id"], name)
+
+    def buy_all_mode(self, id, min, max, name):
+        if min is None:
+            min = 5000
+        if max is None:
+            max = 1000000
+        if name is None:
+            name = "0"
+        json = self.get_slave_list(id)
+        for slave in json["slaves"]:
+            if slave["fetter_to"] == 0:
+                if min < slave["price"] < max:
+                    print(f"buy {slave['id']} on {slave['price']}")
+                    buy = self.buy_slave(slave["id"])[1]
+                    if "balance" not in buy.keys():
+                        print(buy)
+                    else:
+                        print(f"balance {buy['balance']}")
+                    print("job")
+                    self.job_slave(slave["id"], name)
 
 
 BASE_NAME = "base.db"
@@ -196,12 +236,20 @@ BASE_NAME = "base.db"
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", type=int)
+    parser.add_argument("-job_all")
+    parser.add_argument("-buy_all", type=int)
+    parser.add_argument("-min", type=int)
+    parser.add_argument("-max", type=int)
+    parser.add_argument("-name")
     args = parser.parse_args()
-    
-    
+
     base = bot.open_base(BASE_NAME)
     vk = VK(bot.get_token(base))
     slave = Slave(vk)
     if args.id is not None:
         print(slave.buy_slave(args.id)[1])
+    elif args.job_all is not None:
+        slave.job_all_mode(args.job_all.replace("_", " "))
+    elif args.buy_all is not None:
+        slave.buy_all_mode(args.buy_all, args.min, args.max, args.name)
     slave.upgrade_mode()
