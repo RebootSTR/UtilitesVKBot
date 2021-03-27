@@ -11,11 +11,12 @@ commands = ["/status",
             "/pause",
             "/resume",
             "/d",
-            "/slave_start",
-            "/slave_update"]
+            "/s.m.start",
+            "/s.m.update",
+            "/s.a.start"]
 
 PAUSE = False
-SLAVE = None
+STARTER = None
 
 
 def is_command(mes: Message):
@@ -45,25 +46,39 @@ def execute(mes: Message, vk: VK):
             _delete_function(mes, vk)
     elif index == 4:  # start slave
         if mes.is_myself(vk.user_id):
-            _slave_start(vk)
+            _slave_main_start(vk)
     elif index == 5:  # update slave
         if mes.is_myself(vk.user_id):
             print("command update received")
             _slave_update()
+    elif index == 6:  # start aggressive
+        if mes.is_myself(vk.user_id):
+            _slave_aggressive_start(mes, vk)
 
 
-def _slave_start(vk: VK):
-    global SLAVE
-    if SLAVE is None or SLAVE.t.is_alive():
-        print("start new slave")
-        SLAVE = SlaveStarter(vk)
-        SLAVE.start()
+def _slave_main_start(vk: VK):
+    global STARTER
+    print("start new slave main")
+    if STARTER is None:
+        STARTER = SlaveStarter(vk)
+    STARTER.start_main()
+
+
+def _slave_aggressive_start(mes: Message, vk: VK):
+    global STARTER
+    print("start new slave agr")
+    if STARTER is None:
+        STARTER = SlaveStarter(vk)
+    STARTER.start_aggressive(
+        int(mes.get_text().split(" ")[1]),
+        int(mes.get_text().split(" ")[2])
+    )
 
 
 def _slave_update():
-    global SLAVE
-    if SLAVE is not None:
-        SLAVE.update()
+    global STARTER
+    if STARTER is not None:
+        STARTER.update()
 
 
 def _send_status(mes: Message, vk: VK):

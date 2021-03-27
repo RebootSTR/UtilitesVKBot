@@ -45,7 +45,10 @@ class Slave:
         self.table = None
         self.headers = None
         self.options_headers = None
+
         self.need_update = False
+        self.stop = False
+
         self.open_app()
 
         self.options = []
@@ -141,9 +144,9 @@ class Slave:
         while True:
             json = self.update()
             slave_ids = []
+            count = 0
             for i in range(len(json["slaves"])):
                 slave_ids.append(json["slaves"][i]["id"])
-                count = 0
                 if json["slaves"][i]["profit_per_min"]!=1000:
                     print(f'{i}: '
                           f'id: {json["slaves"][i]["id"]} '
@@ -166,6 +169,37 @@ class Slave:
                 self.job_slave(slave_ids[index])
                 print("protect")
                 self.protect_slave(slave_ids[index])
+
+    def aggressive_mode(self, id, buy_counter):
+        try:
+            TEXT = "{}. Не Отдам ❤"
+            while True:
+                slave_info = self.get_slave(id)
+                if slave_info["master_id"] == self.vk.user_id:
+                    print(f"  slave {id} is my. wait 1 hour")
+                    time.sleep(60*60)
+                    if self.stop:
+                        print("      thread killed")
+                        return
+                else:
+                    print(f"  slave {id} not is my. try buy")
+                    if slave_info["fetter_to"] != 0:
+                        print(f"  slave is busy. wait {slave_info['fetter_to']-time.time()+1} secs")
+                        time.sleep(slave_info["fetter_to"] - time.time() + 1)
+                        while self.get_slave(id)["fetter_to"] != 0:
+                            time.sleep(1)
+                        if self.stop:
+                            print("      thread killed")
+                            return
+                    print(f"  buy slave {id}")
+                    self.buy_slave(id)
+                    buy_counter += 1
+
+                    self.job_slave(id, TEXT.format(buy_counter))
+                    self.vk.send_error_in_mes(f"{id} куплен {buy_counter} раз")
+        except Exception as ex:
+            self.vk.send_error_in_mes("раб упал(((")
+            traceback.print_exc()
 
     def sale_slave(self, id):
         sale_url = "https://pixel.w84.vkforms.ru/HappySanta/slaves/1.0.0/saleSlave"
@@ -229,6 +263,9 @@ class Slave:
                         print(f"balance {buy['balance']}")
                     print("job")
                     self.job_slave(slave["id"], name)
+                    if buy['balance'] < 50000000:
+                        print("deneg malo exit")
+                        break
 
 
 BASE_NAME = "base.db"

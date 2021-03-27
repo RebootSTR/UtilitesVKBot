@@ -10,16 +10,25 @@ class SlaveStarter:
 
     def __init__(self, vk):
         self.vk = vk
-        self.slave = None
-        self.t = Thread
+        self.slave_main = None
+        self.t_main = None
+        self.slave_aggressive = None
+        self.t_aggressive = None
 
-    def start(self):
-        self.slave = Slave(self.vk)
-        self.t = Thread(target=self.slave.main, daemon=True)
-        self.t.start()
+    def start_main(self):
+        self.slave_main = Slave(self.vk)
+        self.t_main = Thread(target=self.slave_main.main, daemon=True)
+        self.t_main.start()
+
+    def start_aggressive(self, id, counter):
+        if self.t_aggressive is not None:
+            self.slave_aggressive.stop = True
+        self.slave_aggressive = Slave(self.vk)
+        self.t_aggressive = Thread(target=self.slave_aggressive.aggressive_mode, args=(id, counter), daemon=True)
+        self.t_aggressive.start()
 
     def update(self):
-        self.slave.need_update = True
+        self.slave_main.need_update = True
 
 
 BASE_NAME = "base.db"
@@ -27,4 +36,4 @@ BASE_NAME = "base.db"
 if __name__ == '__main__':
     base = bot.open_base(BASE_NAME)
     vk = VK(bot.get_token(base))
-    SlaveStarter(vk).start()
+    SlaveStarter(vk).start_main()
