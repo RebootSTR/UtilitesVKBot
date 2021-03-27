@@ -13,7 +13,8 @@ commands = ["/status",
             "/d",
             "/s.m.start",
             "/s.m.update",
-            "/s.a.start"]
+            "/s.a.start",
+            "/errors"]
 
 PAUSE = False
 STARTER = None
@@ -54,6 +55,9 @@ def execute(mes: Message, vk: VK):
     elif index == 6:  # start aggressive
         if mes.is_myself(vk.user_id):
             _slave_aggressive_start(mes, vk)
+    elif index == 7:  # message_pool_clear
+        if mes.is_myself(vk.user_id):
+            vk.send_error_in_mes("Pool Cleared")
 
 
 def _slave_main_start(vk: VK):

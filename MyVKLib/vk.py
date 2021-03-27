@@ -12,13 +12,18 @@ class VK:
         self.rest = Rest(self)
         self.longpoll = LongPoll(self)
         self.user_id = self.rest.post("account.getProfileInfo").json()["response"]["id"]
+        self.message_pool = []
 
     def send_error_in_mes(self, error):
         print("ПОЛУЧИЛ ОШИБКУ, ПРОБУЮ ОТПРАВИТЬ В ЛС")
-        send = self.rest.post("messages.send",
-                              peer_id=self.user_id,
-                              message=error,
-                              random_id=random.randint(-2147483648, 2147483647))
+        self.message_pool.append(time.strftime("|%H:%M|"+error))
+        if 8 <= int(time.strftime("%H")) <= 23:
+            for mes in self.message_pool:
+                send = self.rest.post("messages.send",
+                                      peer_id=self.user_id,
+                                      message=mes,
+                                      random_id=random.randint(-2147483648, 2147483647))
+            self.message_pool = []
 
 
 class Rest:
