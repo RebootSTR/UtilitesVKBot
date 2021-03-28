@@ -5,19 +5,13 @@ from Message import Message
 from MyVKLib.vk import VK
 import time
 
-from SlaveStarter import SlaveStarter
-
 commands = ["/status",
             "/pause",
             "/resume",
             "/d",
-            "/s.m.start",
-            "/s.m.update",
-            "/s.a.start",
             "/errors"]
 
 PAUSE = False
-STARTER = None
 
 
 def is_command(mes: Message):
@@ -45,44 +39,9 @@ def execute(mes: Message, vk: VK):
     elif index == 3:  # delete
         if mes.is_out_or_myself(vk.user_id):
             _delete_function(mes, vk)
-    elif index == 4:  # start slave
-        if mes.is_myself(vk.user_id):
-            _slave_main_start(vk)
-    elif index == 5:  # update slave
-        if mes.is_myself(vk.user_id):
-            print("command update received")
-            _slave_update()
-    elif index == 6:  # start aggressive
-        if mes.is_myself(vk.user_id):
-            _slave_aggressive_start(mes, vk)
-    elif index == 7:  # message_pool_clear
+    elif index == 4:  # message_pool_clear
         if mes.is_myself(vk.user_id):
             vk.send_error_in_mes("Pool Cleared")
-
-
-def _slave_main_start(vk: VK):
-    global STARTER
-    print("start new slave main")
-    if STARTER is None:
-        STARTER = SlaveStarter(vk)
-    STARTER.start_main()
-
-
-def _slave_aggressive_start(mes: Message, vk: VK):
-    global STARTER
-    print("start new slave agr")
-    if STARTER is None:
-        STARTER = SlaveStarter(vk)
-    STARTER.start_aggressive(
-        int(mes.get_text().split(" ")[1]),
-        int(mes.get_text().split(" ")[2])
-    )
-
-
-def _slave_update():
-    global STARTER
-    if STARTER is not None:
-        STARTER.update()
 
 
 def _send_status(mes: Message, vk: VK):
