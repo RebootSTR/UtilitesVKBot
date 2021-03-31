@@ -98,15 +98,7 @@ class LongPoll:
         if self.params is None:
             self.update_keys()
         # print("Поиск обновлений... ", end="")
-        r = self.vk.rest.get(
-            "https://{server}?act=a_check&key={key}&ts={ts}&wait={wait}&mode=2&version=3".format(
-                server=self.params['server'],
-                key=self.params['key'],
-                wait=self.params['wait'],
-                ts=self.params['ts']),
-            timeout=90).json()
-        if 'failed' in r.keys():
-            self.update_keys()
+        while True:
             r = self.vk.rest.get(
                 "https://{server}?act=a_check&key={key}&ts={ts}&wait={wait}&mode=2&version=3".format(
                     server=self.params['server'],
@@ -114,7 +106,12 @@ class LongPoll:
                     wait=self.params['wait'],
                     ts=self.params['ts']),
                 timeout=90).json()
-        else:
-            self.params['ts'] = r['ts']
+            if 'failed' in r.keys():
+                print("Fail update, refresh keys")
+                self.update_keys()
+                continue
+            else:
+                self.params['ts'] = r['ts']
+                break
         # print("Обновлено")
         return r
