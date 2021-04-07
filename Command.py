@@ -74,8 +74,13 @@ def _delete_function(mes: Message, vk: VK):
         if not is_i_admin:
             can_delete = [vk.user_id]
 
+    if mes.is_myself(vk.user_id):
+        global_delete = 0
+    else:
+        global_delete = 1
+
     reply_date = message["reply_message"]["date"]
-    if int(time.time()) - reply_date > 86100:  # 23:55:00
+    if int(time.time()) - reply_date > 86100 and global_delete:  # 23:55:00
         limit_date = int(time.time()) - 86100
     else:
         limit_date = reply_date
@@ -84,7 +89,7 @@ def _delete_function(mes: Message, vk: VK):
     ids = []
     while_exit = True
     while while_exit:
-        r = vk.rest.post("messages.getHistory", count=50, peer_id=mes.get_peer(), offset=offset)
+        r = vk.rest.post("messages.getHistory", count=100, peer_id=mes.get_peer(), offset=offset)
         for item in r.json()['response']['items']:
             if item['date'] >= limit_date:
                 if "action" not in item.keys():
@@ -97,30 +102,27 @@ def _delete_function(mes: Message, vk: VK):
 
     # Удаление
     print("deleting")
-    if mes.is_myself(vk.user_id):
-        delete_mode = 0
-    else:
-        delete_mode = 1
+
     count = len(ids)
     times = 0
     while count > 0:
         if count >= 1000:
             r = vk.rest.post("messages.delete",
                              message_ids=str(ids[times * 1000:times * 1000 + 1000])[1:-1],
-                             delete_for_all=delete_mode)
+                             delete_for_all=global_delete)
             times += 1
             count -= 1000
         else:
             r = vk.rest.post("messages.delete",
                              message_ids=str(ids[times * 1000:times * 1000 + count])[1:-1],
-                             delete_for_all=delete_mode)
+                             delete_for_all=global_delete)
             count = 0
         print(r.text)
     # отчет об удалении
     r = _send_text(mes, vk, f"Уничтожено {len(ids) - 1} сообщений(я) :)")
     time.sleep(5)
     # удаление отчета
-    r = vk.rest.post("messages.delete", message_ids=r.json()['response'], delete_for_all=delete_mode)
+    r = vk.rest.post("messages.delete", message_ids=r.json()['response'], delete_for_all=global_delete)
 
 
 def _send_text(mes: Message, vk: VK, text: str):
