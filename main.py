@@ -53,7 +53,7 @@ if __name__ == '__main__':
     print("STARTED")
     send = vk.rest.post("messages.send",
                         peer_id=vk.user_id,
-                        message=f"<Online.{time.strftime('%H:%M:%S')}>",
+                        message=f"<Started.{time.strftime('%H:%M:%S')}>",
                         random_id=random.randint(-2147483648, 2147483647))
     while True:
         parse_messages()

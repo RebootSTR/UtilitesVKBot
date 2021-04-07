@@ -12,6 +12,7 @@ commands = ["/status",
             "/errors"]
 
 PAUSE = False
+BOT_STARTED_TIME = time.time()
 
 
 def is_command(mes: Message):
@@ -45,7 +46,15 @@ def execute(mes: Message, vk: VK):
 
 
 def _send_status(mes: Message, vk: VK):
-    _reply_text(mes, vk, f"<Online.{time.strftime('%H:%M:%S')}>")
+    work_time_sec = time.time()-BOT_STARTED_TIME
+    work_time = time.gmtime(work_time_sec)
+    format_time = ""
+    count_days = int(work_time_sec/86400)
+    if count_days != 0:
+        format_time += f"{count_days} days "
+    format_time += "%H:%M:%S"
+    str_time = time.strftime(format_time, work_time)
+    _reply_text(mes, vk, f"<Online.{str_time}>")
 
 
 def _send_pause(mes: Message, vk: VK):
