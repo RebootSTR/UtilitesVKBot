@@ -101,11 +101,14 @@ class CommandExecutor:
                             if att_type in ["photo",
                                             "video",
                                             "audio",
-                                            # "doc",
+                                            "doc",
                                             "audio_message",
                                             "wall",
                                             ]:
-                                att_owner = att[att_type]["owner_id"]
+                                if att_type == "wall":
+                                    att_owner = att_owner = att[att_type]["from_id"]
+                                else:
+                                    att_owner = att[att_type]["owner_id"]
                                 att_id = att[att_type]["id"]
                                 att_access_key = ""
                                 if "access_key" in att.keys():
