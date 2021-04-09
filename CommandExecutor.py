@@ -19,7 +19,8 @@ class CommandExecutor:
                          "/resume",
                          "/d",
                          "/errors",
-                         "/update"]
+                         "/update",
+                         "/clone"]
 
         self.PAUSE = False
 
@@ -50,7 +51,8 @@ class CommandExecutor:
             if mes.is_myself(vk.user_id):
                 vk.send_error_in_mes("Pool Cleared")
         elif index == 5:  # update
-            self._update(mes, vk)
+            if mes.is_out_or_myself(vk.user_id):
+                self._update(mes, vk)
 
     def _update(self, mes: Message, vk: VK):
         self._reply_text(mes, vk, "Updating")
