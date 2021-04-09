@@ -145,7 +145,7 @@ class CommandExecutor:
             format_time += f"{count_days} days "
         format_time += "%H:%M:%S"
         str_time = time.strftime(format_time, work_time)
-        self._reply_text(mes, vk, f"<Online {self.bot_version}.{str_time}>")
+        self._reply_text(mes, vk, f"<Online {self.bot_version}. Work {str_time}>")
 
     def _send_pause(self, mes: Message, vk: VK):
         self._reply_text(mes, vk, "Paused")
