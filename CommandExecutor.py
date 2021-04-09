@@ -106,13 +106,13 @@ class CommandExecutor:
                                             "wall",
                                             ]:
                                 if att_type == "wall":
-                                    att_owner = att_owner = att[att_type]["from_id"]
+                                    att_owner = att[att_type]["from_id"]
                                 else:
                                     att_owner = att[att_type]["owner_id"]
                                 att_id = att[att_type]["id"]
                                 att_access_key = ""
-                                if "access_key" in att.keys():
-                                    att_access_key = att["access_key"]
+                                if "access_key" in att[att_type].keys():
+                                    att_access_key = att[att_type]["access_key"]
                                 clone_attachments += f"{att_type}{att_owner}_{att_id}"
                                 if att_access_key != "":
                                     clone_attachments += f"_{att_access_key}"
