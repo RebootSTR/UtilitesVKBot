@@ -30,6 +30,9 @@ class VK:
 class Rest:
     def __init__(self, vk):
         self.vk = vk
+        self.last_request = 0
+        self.time_limit = 0.34
+        self.captcha_loop = 0
 
     def wait_connection(self):
         while True:
@@ -37,9 +40,13 @@ class Rest:
                 r = requests.get("https://api.vk.com")
                 return
             except:
-                time.sleep(60)
+                time.sleep(5)
 
     def post(self, method, **kwargs):
+        # фикс частых запросов
+        delta_last_request_time = time.time() - self.last_request
+        if delta_last_request_time < self.time_limit:
+            time.sleep(self.time_limit - delta_last_request_time)
         while True:
             if 'v' not in kwargs.keys():
                 kwargs["v"] = "5.126"
@@ -54,18 +61,23 @@ class Rest:
             url = url[:-1]
             try:
                 r = requests.post(url)
-                if "failed" in r.json().keys():
-                    print("Найден FAILED - обработай \n" + r.json())
-                    # self.vk.send_error_in_mes("Найден FAILED - обработай \n" + r.json())
-                    input("жду приказа")
+                print(r.json())
+                if "error" in r.json().keys():
+                    print("Найден ERROR - обработай \n")
+                    if r.json()["error"]["error_code"] == 14:  # captcha
+                        print("captcha???")
+                        self.captcha_loop += 1
+                        if self.captcha_loop == 3:
+                            break
+                        time.sleep(1)
+                        raise Exception("captcha")
                 break
             except Exception as ex:
-                waiting = time.time()
                 print(time.ctime() + '\n ошибка post запроса')
                 print("начинаю ожидание соединения")
                 self.wait_connection()
-                # self.vk.send_error_in_mes("Соединение восстановлено спустя {} секунд, "
-                #                           "после исключения в методе post".format(time.time() - waiting))
+        self.last_request = time.time()
+        self.captcha_loop = 0
         return r
 
     def get(self, url, timeout):
