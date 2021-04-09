@@ -16,7 +16,8 @@ class VK:
 
     def send_error_in_mes(self, error):
         print("ПОЛУЧИЛ ОШИБКУ, ПРОБУЮ ОТПРАВИТЬ В ЛС")
-        self.message_pool.append(time.strftime("|%H:%M|"+error))
+        time_str = time.strftime("|%H:%M|")
+        self.message_pool.append(time_str+error)
         if 8 <= int(time.strftime("%H")) <= 23 or error == "Pool Cleared":
             for mes in self.message_pool:
                 send = self.rest.post("messages.send",

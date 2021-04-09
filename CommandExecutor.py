@@ -30,7 +30,6 @@ class CommandExecutor:
         return mes.get_text().split(" ")[0] in self.commands
 
     def execute(self, mes: Message, vk: VK):
-
         index = self.commands.index(mes.get_text().split(" ")[0])
 
         if self.PAUSE and index != 2:
@@ -57,7 +56,11 @@ class CommandExecutor:
                 self._update(mes, vk)
         elif index == 6:  # clone
             if mes.is_out_or_myself(vk.user_id):
-                self._clone_and_send(mes, vk)
+                try:
+                    self._clone_and_send(mes, vk)
+                except:
+                    vk.send_error_in_mes(f"can't clone, get error. id={mes.get_id()}")
+
         elif index == 7:  # get message id
             if mes.is_out_or_myself(vk.user_id):
                 self._send_msg_id(mes, vk)
@@ -78,7 +81,56 @@ class CommandExecutor:
         return vk.rest.post("messages.getById", message_ids=id).json()["response"]
 
     def _clone_and_send(self, mes: Message, vk: VK):
-        pass
+        message = self._get_message_by_id(mes.get_id(), vk)
+        if message["count"] != 0:
+            message = message["items"][0]
+            if len(message["fwd_messages"]) != 0:
+                for original_message in message["fwd_messages"]:
+                    clone_message_text = original_message["text"]
+                    clone_message_fwd = ""
+                    if "fwd_messages" in original_message.keys():
+                        for original_message_fwd in original_message["fwd_messages"]:
+                            clone_message_fwd += f"{original_message_fwd['id']},"
+                        if len(clone_message_fwd) != 0:
+                            clone_message_fwd = clone_message_fwd[:-1]
+
+                    clone_attachments = ""
+                    if "attachments" in original_message.keys():
+                        for att in original_message["attachments"]:
+                            att_type = att["type"]
+                            if att_type in ["photo",
+                                            "video",
+                                            "audio",
+                                            # "doc",
+                                            "audio_message",
+                                            "wall",
+                                            ]:
+                                att_owner = att[att_type]["owner_id"]
+                                att_id = att[att_type]["id"]
+                                att_access_key = ""
+                                if "access_key" in att.keys():
+                                    att_access_key = att["access_key"]
+                                clone_attachments += f"{att_type}{att_owner}_{att_id}"
+                                if att_access_key != "":
+                                    clone_attachments += f"_{att_access_key}"
+                                clone_attachments += ","
+                        if len(clone_attachments) != 0:
+                            clone_attachments = clone_attachments[:-1]
+                    self._send_mess_with_fwd_and_att(mes, vk, clone_message_text, clone_message_fwd, clone_attachments)
+        self._delete_msg(mes, vk)
+
+    def _delete_msg(self, mes: Message, vk: VK):
+        delete = vk.rest.post("messages.delete",
+                              message_ids=mes.get_id(),
+                              delete_for_all=0 if mes.is_myself(vk.user_id) else 1)
+
+    def _send_mess_with_fwd_and_att(self, mes: Message, vk: VK, text, fwd, att):
+        send = vk.rest.post("messages.send",
+                            peer_id=mes.get_peer(),
+                            message=text,
+                            attachment=att,
+                            forward_messages=fwd,
+                            random_id=random.randint(-2147483648, 2147483647))
 
     def _update(self, mes: Message, vk: VK):
         self._reply_text(mes, vk, "Updating")
