@@ -9,11 +9,12 @@ import time
 
 
 class CommandExecutor:
-    def __init__(self, start_time):
+    def __init__(self, start_time, bot_version):
         if start_time is None:
             self.BOT_STARTED_TIME = time.time()
         else:
             self.BOT_STARTED_TIME = start_time
+        self.bot_version = bot_version
         self.commands = ["/status",
                          "/pause",
                          "/resume",
@@ -92,7 +93,7 @@ class CommandExecutor:
             format_time += f"{count_days} days "
         format_time += "%H:%M:%S"
         str_time = time.strftime(format_time, work_time)
-        self._reply_text(mes, vk, f"<Online.{str_time}>")
+        self._reply_text(mes, vk, f"<Online {self.bot_version}.{str_time}>")
 
     def _send_pause(self, mes: Message, vk: VK):
         self._reply_text(mes, vk, "Paused")

@@ -47,7 +47,7 @@ def open_base(name: str):
 
 
 BASE_NAME = "base.db"
-VERSION = "v1.13"
+VERSION = "v1.131"
 
 
 def run():
@@ -55,7 +55,7 @@ def run():
     parser.add_argument("-start_time", type=int)
     args = parser.parse_args()
 
-    command_executor = CommandExecutor(args.start_time)
+    command_executor = CommandExecutor(args.start_time, VERSION)
     base = open_base(BASE_NAME)
     vk = VK(get_token(base))
     print("STARTED")
