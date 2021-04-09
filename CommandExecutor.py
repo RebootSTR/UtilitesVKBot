@@ -20,7 +20,8 @@ class CommandExecutor:
                          "/d",
                          "/errors",
                          "/update",
-                         "/clone"]
+                         "/clone",
+                         "/get_id"]
 
         self.PAUSE = False
 
@@ -42,7 +43,7 @@ class CommandExecutor:
                 self._send_pause(mes, vk)
         elif index == 2:  # resume
             if mes.is_out_or_myself(vk.user_id):
-                PAUSE = False
+                self.PAUSE = False
                 self._send_resume(mes, vk)
         elif index == 3:  # delete
             if mes.is_out_or_myself(vk.user_id):
@@ -53,6 +54,30 @@ class CommandExecutor:
         elif index == 5:  # update
             if mes.is_out_or_myself(vk.user_id):
                 self._update(mes, vk)
+        elif index == 6:  # clone
+            if mes.is_out_or_myself(vk.user_id):
+                self._clone_and_send(mes, vk)
+        elif index == 7:  # get message id
+            if mes.is_out_or_myself(vk.user_id):
+                self._send_msg_id(mes, vk)
+
+    def _send_msg_id(self, mes: Message, vk: VK):
+        message = self._get_message_by_id(mes.get_id(), vk)
+        if message["count"] != 0:
+            message = message["items"][0]
+            if len(message["fwd_messages"]) != 0:
+                message_id = message["fwd_messages"][0]["id"]
+            elif "reply_message" in message.keys():
+                message_id = message["reply_message"]["id"]
+            else:
+                return
+            self._reply_text(mes, vk, str(message_id))
+
+    def _get_message_by_id(self, id, vk):
+        return vk.rest.post("messages.getById", message_ids=id).json()["response"]
+
+    def _clone_and_send(self, mes: Message, vk: VK):
+        pass
 
     def _update(self, mes: Message, vk: VK):
         self._reply_text(mes, vk, "Updating")
