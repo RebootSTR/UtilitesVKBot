@@ -39,7 +39,7 @@ class CommandExecutor:
                 self._send_status(mes, vk)
         elif index == 1:  # pause
             if mes.is_out_or_myself(vk.user_id):
-                PAUSE = True
+                self.PAUSE = True
                 self._send_pause(mes, vk)
         elif index == 2:  # resume
             if mes.is_out_or_myself(vk.user_id):
