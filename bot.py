@@ -47,7 +47,7 @@ def open_base(name: str):
 
 
 BASE_NAME = "base.db"
-VERSION = "v1.14.4"
+VERSION = "v1.14.5"
 
 
 def run():

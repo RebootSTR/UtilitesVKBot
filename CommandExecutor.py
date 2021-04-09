@@ -88,7 +88,9 @@ class CommandExecutor:
                 for original_message in message["fwd_messages"]:
                     clone_message_text = original_message["text"]
                     clone_message_fwd = ""
-                    if "fwd_messages" in original_message.keys():
+                    if "reply_message" in original_message.keys():
+                        clone_message_fwd = f"{original_message['reply_message']['id']}"
+                    elif "fwd_messages" in original_message.keys():
                         for original_message_fwd in original_message["fwd_messages"]:
                             clone_message_fwd += f"{original_message_fwd['id']},"
                         if len(clone_message_fwd) != 0:

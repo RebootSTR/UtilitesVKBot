@@ -61,7 +61,6 @@ class Rest:
             url = url[:-1]
             try:
                 r = requests.post(url)
-                print(r.json())
                 if "error" in r.json().keys():
                     print("Найден ERROR - обработай \n")
                     if r.json()["error"]["error_code"] == 14:  # captcha
