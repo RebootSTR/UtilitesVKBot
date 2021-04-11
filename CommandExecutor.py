@@ -57,7 +57,7 @@ class CommandExecutor:
         elif index == 6:  # clone
             if mes.is_out_or_myself(vk.user_id):
                 try:
-                    self._clone_and_send(mes, vk)
+                    self.clone_command(mes, vk)
                 except:
                     vk.send_error_in_mes(f"can't clone, get error. id={mes.get_id()}")
 
@@ -80,8 +80,25 @@ class CommandExecutor:
     def _get_message_by_id(self, id, vk):
         return vk.rest.post("messages.getById", message_ids=id).json()["response"]
 
-    def _clone_and_send(self, mes: Message, vk: VK):
-        message = self._get_message_by_id(mes.get_id(), vk)
+    def clone_command(self, mes: Message, vk: VK):
+        include = 0
+        try:
+            include = int(mes.get_text().split(" ")[1])
+        except:
+            pass
+
+        mes_id = mes.get_id()
+        message = self._get_message_by_id(mes_id, vk)
+        for i in range(include):
+            try:
+                mes_id = message["items"][0]["fwd_messages"][0]["id"]
+                message = self._get_message_by_id(mes_id, vk)
+            except:
+                pass
+        return self._clone_and_send(mes, vk, message)
+
+    def _clone_and_send(self, mes: Message, vk: VK, full_message):
+        message = full_message
         if message["count"] != 0:
             message = message["items"][0]
             if len(message["fwd_messages"]) != 0:
