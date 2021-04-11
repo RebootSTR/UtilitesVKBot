@@ -46,18 +46,23 @@ def open_base(name: str):
     return _base
 
 
+def vk_init():
+    base = open_base(BASE_NAME)
+    vk = VK(get_token(base))
+    return vk
+
+
 BASE_NAME = "base.db"
-VERSION = "v1.14.5"
+VERSION = "v1.14.6"
 
 
-def run():
+def run(vk=vk_init()):
     parser = argparse.ArgumentParser()
     parser.add_argument("-start_time", type=int)
     args = parser.parse_args()
 
     command_executor = CommandExecutor(args.start_time, VERSION)
-    base = open_base(BASE_NAME)
-    vk = VK(get_token(base))
+
     print("STARTED")
     send = vk.rest.post("messages.send",
                         peer_id=vk.user_id,
@@ -69,6 +74,12 @@ def run():
 
 if __name__ == '__main__':
     try:
-        run()
+        VERSION += " DEBUG"
+        vk_debug = vk_init()
+        send = vk_debug.rest.post("messages.send",
+                                  peer_id=vk_debug.user_id,
+                                  message="/pause FROM_DEBUG",
+                                  random_id=random.randint(-2147483648, 2147483647))
+        run(vk_debug)
     except Exceptions.ExitException as e:
         print(str(e))
