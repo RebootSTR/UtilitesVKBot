@@ -214,7 +214,7 @@ class CommandExecutor:
                     if "action" not in item.keys():
                         if item['from_id'] in can_delete:
                             ids.append(item['id'])
-                else:
+                if item['date'] <= limit_date:
                     while_exit = False
                     break
             offset += 50

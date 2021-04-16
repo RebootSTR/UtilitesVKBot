@@ -53,7 +53,7 @@ def vk_init():
 
 
 BASE_NAME = "base.db"
-VERSION = "v1.15"
+VERSION = "v1.16"
 
 
 def run(vk=vk_init()):
@@ -74,12 +74,11 @@ def run(vk=vk_init()):
 
 if __name__ == '__main__':
     try:
-        VERSION += " DEBUG"
-        vk_debug = vk_init()
-        send = vk_debug.rest.post("messages.send",
-                                  peer_id=vk_debug.user_id,
-                                  message="/pause FROM_DEBUG",
-                                  random_id=random.randint(-2147483648, 2147483647))
-        run(vk_debug)
+        _vk = vk_init()
+        send = _vk.rest.post("messages.send",
+                             peer_id=_vk.user_id,
+                             message="/pause *open new instance*",
+                             random_id=random.randint(-2147483648, 2147483647))
+        run(_vk)
     except Exceptions.ExitException as e:
         print(str(e))
