@@ -53,7 +53,7 @@ def vk_init():
 
 
 BASE_NAME = "base.db"
-VERSION = "v1.16"
+VERSION = "v1.17"
 
 
 def run(vk=vk_init()):
