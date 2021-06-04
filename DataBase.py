@@ -27,7 +27,7 @@ class DataBase:
         cursor.close()
         self.save()
 
-    def get(self, table, column, search):
+    def get_one_where(self, table, column, search):
         cursor = self.conn.cursor()
         data = cursor.execute("SELECT {} FROM {} where {}".format(column, table, search)).fetchone()
         if data is not None:
@@ -35,9 +35,15 @@ class DataBase:
         cursor.close()
         return data
 
-    def get_all(self, table):
+    def get(self, table):
         cursor = self.conn.cursor()
         data = cursor.execute("SELECT * FROM {}".format(table)).fetchall()
+        cursor.close()
+        return data
+
+    def get_where(self, table, column, search):
+        cursor = self.conn.cursor()
+        data = cursor.execute("SELECT {} FROM {} where {}".format(column, table, search)).fetchall()
         cursor.close()
         return data
 
@@ -61,7 +67,7 @@ class DataBase:
 
     def move_down(self, table, now, need):
         cursor = self.conn.cursor()
-        data = self.get_all(table)
+        data = self.get(table)
         count = len(data)
         for i in range(now-1, count):
             self.delete(table, "id", data[i][0])
@@ -75,7 +81,7 @@ class DataBase:
 
     def move_up(self, table, now, need):
         cursor = self.conn.cursor()
-        data = self.get_all(table)
+        data = self.get(table)
         count = len(data)
         for i in range(need-1, now-1):
             self.delete(table, "id", data[i][0])

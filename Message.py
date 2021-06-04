@@ -35,6 +35,14 @@ class Message:
     def is_chat(self):
         return self.get_peer() > 2000000000
 
+    def is_has_attach(self):
+        for d in self.data:
+            if type(d) is dict:
+                for key in d.keys():
+                    if "attach" in key:
+                        return True
+        return False
+
     def toString(self):
         return "Сообщение с id {} было отправлено в {} в {} по Unixtime . Его отправил {}. Текст сообщения - {}.".format(
             self.get_id(),

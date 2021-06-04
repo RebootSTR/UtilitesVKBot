@@ -1,20 +1,25 @@
 # @rebootstr
 
 import random
+from threading import Thread
+
+import requests
 
 import Exceptions
 from Message import Message
+from MessagesStorage import MessagesStorage
 from MyVKLib.vk import VK
 import time
 
 
 class CommandExecutor:
-    def __init__(self, start_time, bot_version):
+    def __init__(self, start_time, bot_version, storage: MessagesStorage):
         if start_time is None:
             self.BOT_STARTED_TIME = time.time()
         else:
             self.BOT_STARTED_TIME = start_time
         self.bot_version = bot_version
+        self.storage = storage
         self.commands = ["/status",
                          "/pause",
                          "/resume",
@@ -22,7 +27,8 @@ class CommandExecutor:
                          "/errors",
                          "/update",
                          "/clone",
-                         "/get_id"]
+                         "/get_id",
+                         "/history"]
 
         self.PAUSE = False
 
@@ -63,6 +69,9 @@ class CommandExecutor:
         elif index == 7:  # get message id
             if mes.is_out_or_myself(vk.user_id):
                 self._send_msg_id(mes, vk)
+        elif index == 8:  # history
+            if mes.is_out_or_myself(vk.user_id):
+                Thread(target=self.history_command, args=(mes, vk), daemon=True).run()
 
     def _send_msg_id(self, mes: Message, vk: VK):
         message = self._get_message_by_id(mes.get_id(), vk)
@@ -252,3 +261,34 @@ class CommandExecutor:
                             reply_to=mes.get_id(),
                             random_id=random.randint(-2147483648, 2147483647))
         return send
+
+    def history_command(self, mes: Message, vk: VK):
+        full_msg = self._get_message_by_id(mes.get_id(), vk)
+        if full_msg["count"] != 0:
+            if "fwd_messages" in full_msg["items"][0].keys():
+                fwd = full_msg["items"][0]["fwd_messages"]
+                if len(fwd) == 2:
+                    from_id = fwd[0]["id"]
+                    to_id = fwd[1]["id"]
+                    file_name = self.storage.get_history(from_id, to_id, mes.get_peer())
+                    url = self._docs_getMessagesUploadServer(vk)["response"]["upload_url"]
+                    r = requests.post(url, files={"file": open(file_name, "rb")}).json()
+                    r = self._docs_save(vk, r["file"])
+                    if "error" in r.keys():
+                        vk.send_error_in_mes(r)
+                        send = vk.rest.post("messages.send",
+                                            peer_id=mes.get_peer(),
+                                            message="не вышло( чекай логи бота",
+                                            reply_to=mes.get_id(),
+                                            random_id=random.randint(-2147483648, 2147483647))
+                    send = vk.rest.post("messages.send",
+                                        peer_id=mes.get_peer(),
+                                        attachment=f"doc{vk.user_id}_{r['response']['doc']['id']}",
+                                        reply_to=mes.get_id(),
+                                        random_id=random.randint(-2147483648, 2147483647))
+
+    def _docs_getMessagesUploadServer(self, vk: VK):
+        return vk.rest.post("docs.getMessagesUploadServer", type="doc").json()
+
+    def _docs_save(self, vk: VK, file):
+        return vk.rest.post("docs.save", file=file, title="OpenThisAsHTML").json()

@@ -5,12 +5,13 @@ import Exceptions
 import argparse
 from Message import Message
 from DataBase import DataBase
+from MessagesStorage import MessagesStorage
 from MyVKLib.vk import *
 
 
 def check_base(base):
     try:
-        base.get_all("settings")
+        base.get("settings")
     except:
         return False
     return True
@@ -24,7 +25,7 @@ def init_new_session(base):
 
 
 def get_token(base):
-    return base.get("settings", "value", "key='token'")
+    return base.get_one_where("settings", "value", "key='token'")
 
 
 def parse_messages(vk: VK, command_executor):
@@ -33,6 +34,7 @@ def parse_messages(vk: VK, command_executor):
         if update[0] == 4:  # СООБЩЕНИЕ
             # print(update)
             message = Message(update)
+            storage.save(message)
             if command_executor.is_command(message):
                 command_executor.execute(message, vk)
             print(message.toString())
@@ -53,7 +55,7 @@ def vk_init():
 
 
 BASE_NAME = "base.db"
-VERSION = "v1.17"
+VERSION = "v1.18beta"
 
 
 def run(vk=vk_init()):
@@ -61,7 +63,7 @@ def run(vk=vk_init()):
     parser.add_argument("-start_time", type=int)
     args = parser.parse_args()
 
-    command_executor = CommandExecutor(args.start_time, VERSION)
+    command_executor = CommandExecutor(args.start_time, VERSION, storage)
 
     print("STARTED")
     send = vk.rest.post("messages.send",
@@ -75,6 +77,7 @@ def run(vk=vk_init()):
 if __name__ == '__main__':
     try:
         _vk = vk_init()
+        storage = MessagesStorage(_vk)
         send = _vk.rest.post("messages.send",
                              peer_id=_vk.user_id,
                              message="/pause *open new instance*",
