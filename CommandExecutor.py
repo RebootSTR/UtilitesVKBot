@@ -71,7 +71,7 @@ class CommandExecutor:
                 self._send_msg_id(mes, vk)
         elif index == 8:  # history
             if mes.is_out_or_myself(vk.user_id):
-                Thread(target=self.history_command, args=(mes, vk), daemon=True).run()
+                Thread(target=self.history_command, args=(mes, vk), daemon=True).start()
 
     def _send_msg_id(self, mes: Message, vk: VK):
         message = self._get_message_by_id(mes.get_id(), vk)
@@ -270,7 +270,7 @@ class CommandExecutor:
                 if len(fwd) == 2:
                     from_id = fwd[0]["id"]
                     to_id = fwd[1]["id"]
-                    file_name = self.storage.get_history(from_id, to_id, mes.get_peer())
+                    file_name = self.storage.get_history(from_id, to_id, fwd[0]["peer_id"])
                     url = self._docs_getMessagesUploadServer(vk)["response"]["upload_url"]
                     r = requests.post(url, files={"file": open(file_name, "rb")}).json()
                     r = self._docs_save(vk, r["file"])

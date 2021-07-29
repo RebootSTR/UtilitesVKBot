@@ -58,10 +58,11 @@ class MessagesStorage:
                         self.base.append("photos", link, mes_id)
 
     def get_history(self, from_id, to_id, peer_id):
-        messages = self.base.get_where("messages", "*", f"id between {from_id} and {to_id} and peer={peer_id}")
+        _base = DataBase(self.base.name)  # open base with new connection (thread safe)
+        messages = _base.get_where("messages", "*", f"id between {from_id} and {to_id} and peer={peer_id}")
         _messages = []
         for message in messages:
-            photos = self.base.get_where("photos", "*", f"message_id = {message[0]}")
+            photos = _base.get_where("photos", "*", f"message_id = {message[0]}")
             _photos = []
             for photo in photos:
                 _photos.append(self.get_photo_url(photo[0]))

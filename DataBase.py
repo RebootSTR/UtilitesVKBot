@@ -3,6 +3,7 @@ import sqlite3
 
 class DataBase:
     def __init__(self, name):
+        self.name = name
         self.conn = sqlite3.connect(name)
 
     def create(self, table):
