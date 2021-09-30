@@ -12,19 +12,14 @@ class VK:
         self.rest = Rest(self)
         self.longpoll = LongPoll(self)
         self.user_id = self.rest.post("account.getProfileInfo").json()["response"]["id"]
-        self.message_pool = []
 
     def send_error_in_mes(self, error):
         print("ПОЛУЧИЛ ОШИБКУ, ПРОБУЮ ОТПРАВИТЬ В ЛС")
         time_str = time.strftime("|%H:%M|")
-        self.message_pool.append(time_str+error)
-        if 8 <= int(time.strftime("%H")) <= 23 or error == "Pool Cleared":
-            for mes in self.message_pool:
-                send = self.rest.post("messages.send",
-                                      peer_id=self.user_id,
-                                      message=mes,
-                                      random_id=random.randint(-2147483648, 2147483647))
-            self.message_pool = []
+        send = self.rest.post("messages.send",
+                              peer_id=self.user_id,
+                              message=time_str+error,
+                              random_id=random.randint(-2147483648, 2147483647))
 
 
 class Rest:
@@ -70,6 +65,11 @@ class Rest:
                             break
                         time.sleep(1)
                         raise Exception("captcha")
+                    else:
+                        self.vk.send_error_in_mes("Got error in post")
+                        print(url)
+                        print(r.text)
+                        input("жду, сплю, наверное, умру")
                 break
             except Exception as ex:
                 print(time.ctime() + '\n ошибка post запроса')
