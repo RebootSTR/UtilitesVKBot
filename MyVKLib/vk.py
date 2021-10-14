@@ -56,6 +56,7 @@ class Rest:
             url = url[:-1]
             try:
                 r = requests.post(url)
+                self.last_request = time.time()
                 if "error" in r.json().keys():
                     print("Найден ERROR - обработай \n")
                     if r.json()["error"]["error_code"] == 14:  # captcha
@@ -75,7 +76,7 @@ class Rest:
                 print(time.ctime() + '\n ошибка post запроса')
                 print("начинаю ожидание соединения")
                 self.wait_connection()
-        self.last_request = time.time()
+
         self.captcha_loop = 0
         return r
 
