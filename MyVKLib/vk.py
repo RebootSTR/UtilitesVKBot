@@ -66,6 +66,11 @@ class Rest:
                             break
                         time.sleep(1)
                         raise Exception("captcha")
+                    elif r.json()["error"]["error_code"] == 6:  # many requests per second
+                        time.sleep(0.5)
+                        self.vk.send_error_in_mes("пытаюсь подождать, потому что many requests per second")
+                        self.post(method, **kwargs)
+
                     else:
                         self.vk.send_error_in_mes("Got error in post")
                         print(url)
