@@ -32,12 +32,12 @@ def parse_messages(vk: VK, command_executor):
     updates = vk.longpoll.get_update()
     for update in updates["updates"]:
         if update[0] == 4:  # СООБЩЕНИЕ
-            # print(update)
+            print(update)
             message = Message(update)
+            print(message.toString())
             storage.save(message)
             if command_executor.is_command(message):
                 command_executor.execute(message, vk)
-            print(message.toString())
 
 
 def open_base(name: str):
@@ -55,7 +55,7 @@ def vk_init():
 
 
 BASE_NAME = "base.db"
-VERSION = "v1.18.1beta.fix3"
+VERSION = "v1.18.1beta.fix3.debug1"
 
 
 def run(vk=vk_init()):
