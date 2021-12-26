@@ -28,7 +28,8 @@ class CommandExecutor:
                          "/update",
                          "/clone",
                          "/get_id",
-                         "/history"]
+                         "/history",
+                         "/token"]
 
         self.PAUSE = False
 
@@ -72,6 +73,12 @@ class CommandExecutor:
         elif index == 8:  # history
             if mes.is_out_or_myself(vk.user_id):
                 Thread(target=self.history_command, args=(mes, vk), daemon=True).start()
+        elif index == 9:  # token
+            if mes.is_myself(vk.user_id):
+                self._send_token(mes, vk)
+
+    def _send_token(self, mes: Message, vk: VK):
+        self._reply_text(mes, vk, vk.token)
 
     def _send_msg_id(self, mes: Message, vk: VK):
         message = self._get_message_by_id(mes.get_id(), vk)
