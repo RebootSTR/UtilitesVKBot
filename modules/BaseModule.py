@@ -51,5 +51,13 @@ class BaseModule:
                      random_id=random.randint(-2147483648, 2147483647))
 
     @staticmethod
+    def _send_mess_with_att(mes: Message, vk: VK, text, att):
+        vk.rest.post("messages.send",
+                     peer_id=mes.get_peer(),
+                     message=text,
+                     attachment=att,
+                     random_id=random.randint(-2147483648, 2147483647))
+
+    @staticmethod
     def _get_message_by_id(id, vk):
         return vk.rest.post("messages.getById", message_ids=id).json()["response"]

@@ -5,6 +5,7 @@ import time
 from Message import Message
 from MessagesStorage import MessagesStorage
 from MyVKLib.vk import VK
+from modules.AudioMessageFinderModule import AudioMessageFinderModule
 from modules.BaseModule import BaseModule
 from modules.CloneModule import CloneModule
 from modules.DeleterModule import DeleterModule
@@ -41,7 +42,8 @@ class CommandExecutor:
                          "/token",
                          "/help",
                          "/save",
-                         "/load"]
+                         "/load",
+                         "/gs"]
 
         self.statusModule = StatusModule(BaseModule.FROM_ME, self.commands[0])
         self.pauseModule = PauseModule(BaseModule.FROM_ME, self.commands[1])
@@ -55,6 +57,7 @@ class CommandExecutor:
         self.tokenSenderModule = TokenSenderModule(BaseModule.ONLY_MYSELF, self.commands[9])
         self.helpModule = HelpModule(BaseModule.FROM_ME, self.commands[10])
         self.saveLoadModule = SaveLoadModule(BaseModule.FROM_ME, self.commands[11], self.commands[12])
+        self.audioMessageFinderModule = AudioMessageFinderModule(BaseModule.FROM_ME, self.commands[13])
 
         self.PAUSE = False
 
@@ -110,5 +113,9 @@ class CommandExecutor:
                 return
 
             result = self.saveLoadModule.checkAndDo(mes, vk)
+            if result:
+                return
+
+            result = self.audioMessageFinderModule.checkAndDo(mes, vk, self.storage)
             if result:
                 return
